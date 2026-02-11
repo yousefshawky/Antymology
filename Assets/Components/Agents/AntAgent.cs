@@ -1,5 +1,5 @@
 using UnityEngine;
-using Antymology.Terrain; 
+using Antymology.Terrain;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -318,7 +318,7 @@ namespace Antymology.Components.Agents
 
             AbstractBlock block = WorldManager.Instance.GetBlock(x, y, z);
 
-            // Cannot dig ContainerBlocks 
+            // Cannot dig certain block types
             if (block is ContainerBlock || block is AirBlock || block is AcidicBlock || block is NestBlock) 
                 return false;
 
