@@ -23,7 +23,7 @@ public class EvolutionManager : MonoBehaviour
     public Vector3Int queenSpawnGridPos = new Vector3Int(20, 0, 20);
     public float workerSpawnRadius = 5f;
     
-    // Made public so UI can access them
+    // Public properties for UI access
     public int currentGeneration { get; private set; } = 0;
     public float generationTimer { get; private set; } = 0f;
     
@@ -60,7 +60,7 @@ public class EvolutionManager : MonoBehaviour
             }
         }
         
-        // Default to Y=10 if we can't find surface
+        // Default fallback
         return 10;
     }
     
@@ -187,7 +187,6 @@ public class EvolutionManager : MonoBehaviour
         List<GeneSet> newGenes = new List<GeneSet>();
         
         // ELITISM: Preserve best genes without modification
-        // Ensures good solutions aren't lost
         for (int i = 0; i < Mathf.Min(eliteCount, fitnessScores.Count); i++)
         {
             newGenes.Add(new GeneSet
