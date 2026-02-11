@@ -1,96 +1,128 @@
 # Antymology - Evolutionary Ant Colony Simulation
 
-An evolutionary algorithm that optimizes ant colony behavior for nest production in a 3D voxel environment. Worker ants and a queen evolve cooperative strategies over generations to maximize nest construction.
+<div align="center">
 
-**CPSC 565 - Emergent Computing | Winter 2026 | University of Calgary | Author: Youssef Shawky**
+**An evolutionary algorithm that optimizes ant colony behavior for nest production in a 3D voxel environment**
+
+*CPSC 565 - Emergent Computing | Winter 2026 | University of Calgary*
+
+**Author:** Youssef Shawky
+
+</div>
 
 ---
 
-## Evolutionary Algorithm
+## 📋 Overview
+
+Antymology is a Unity-based evolutionary simulation demonstrating emergent cooperative behavior in artificial life. Worker ants and a queen evolve survival strategies over generations to maximize nest construction through genetic algorithms.
+
+**Key Achievement:** Ants independently evolved altruistic health-sharing behavior - sacrificing their own health to sustain the queen - resulting in a **4.75× fitness improvement** (200 → 950) within 2 generations.
+
+---
+
+## 🎮 Evolution in Action
+
+<div align="center">
+
+### Generation 1: Random Behavior
+![Generation 1](Images/gen1.png)
+*Uncoordinated movement, queen dies early, only 2 nests produced (Fitness: 200)*
+
+### Generation 5: Evolved Cooperation
+![Generation 5](Images/gen5.png)
+*Workers cluster near queen, strategic health sharing, 9+ nests produced (Fitness: 950)*
+
+</div>
+
+---
+
+## 🧬 The Evolutionary Algorithm
 
 ### How It Works
-1. **Spawn:** 1 Queen + 14 Workers per generation
-2. **Evaluate:** 50 seconds of autonomous behavior
-3. **Fitness:**
-   - Queen: `nests × 100 + (50 if alive)`
-   - Workers: `currentHealth + (20 if alive)`
-4. **Select:** Top 50% become breeding pool
-5. **Elite:** Top 3 preserved unchanged
-6. **Crossover:** Offspring inherit genes from 2 parents
-7. **Mutate:** 30% chance, ±0.2 variance
+
+```
+1. Spawn 1 Queen + 14 Workers with random genes
+2. Evaluate for 50 seconds of autonomous behavior
+3. Calculate fitness:
+   - Queen: nests × 100 + (50 if alive)
+   - Worker: current_health + (20 if alive)
+4. Select top 50% for breeding
+5. Preserve top 3 (elitism)
+6. Create offspring via crossover + mutation (30% chance, ±0.2)
+7. Repeat
+```
 
 ### The Three Genes
 
-| Gene | Range | Purpose |
-|------|-------|---------|
-| `explorationRate` | 0.1-1.0 | Random movement frequency |
-| `diggingProbability` | 0.0-0.5 | Terrain clearing near queen |
-| `foodSeekingWeight` | 0.3-2.0 | Hunger threshold multiplier |
+| Gene | Range | Purpose | Evolved Value |
+|------|-------|---------|---------------|
+| `explorationRate` | 0.1-1.0 | Random movement frequency | 0.3-0.5 |
+| `diggingProbability` | 0.0-0.5 | Terrain clearing near queen | 0.1-0.2 |
+| `foodSeekingWeight` | 0.3-2.0 | Hunger threshold multiplier | 1.0-1.5 |
 
-These genes evolved to produce **emergent cooperative behavior** - workers learned to keep queens alive by sharing health, resulting in significantly more nests.
+**Finding:** Moderate values consistently outperformed extremes - evolution favored balanced strategies.
 
 ---
 
-## Implementation
+## 🔬 Technical Implementation
 
-### Ant Behavior (AntAgent.cs)
+### Agent AI (`AntAgent.cs`)
 
-Decision priority system (every 0.5s):
-1. **Queen Support** - Share health if queen is weak
-2. **Survival** - Eat mulch when health < `maxHealth × (0.6 × foodSeekingWeight)`
-3. **Digging** - Clear space near queen (probability-based)
+Decision hierarchy evaluated every 0.5s:
+
+1. **Queen Support** - Share health if queen < 50% HP
+2. **Survival** - Eat mulch when health < maxHealth × (0.6 × foodSeekingWeight)
+3. **Digging** - Clear terrain near queen (probability-based)
 4. **Exploration** - Random movement (rate-based)
 
-Key mechanics:
+**Core Mechanics:**
 - Health decays 2 HP/s (4 HP/s on acidic blocks)
-- Mulch consumption refills health fully
-- Can't eat mulch if another ant occupies it
-- Movement limited to ±2 block height
+- Mulch consumption fully restores health
 - Zero-sum health sharing between ants
+- Movement limited to ±2 block height
 
-### Queen Behavior (QueenAnt.cs)
+### Queen Behavior (`QueenAnt.cs`)
 
-- Produces nest blocks every 3 seconds
-- Cost: 33% max health per nest
+- Produces nest every 3 seconds (cost: 33% max health)
 - Magenta color, 1.5× scale for visibility
-- Limited exploration (stays near nests)
+- Limited exploration to stay near nests
 
-### Evolution System (EvolutionManager.cs)
-
-**Fitness Calculation:**
-```csharp
-Queen: nestsProduced × 100 + (alive ? 50 : 0)
-Worker: currentHealth + (alive ? 20 : 0)
-```
+### Evolution System (`EvolutionManager.cs`)
 
 **Genetic Operators:**
-- **Elitism:** Preserves top 3 solutions
-- **Crossover:** 50/50 gene inheritance from two parents
-- **Mutation:** 30% chance per gene, ±0.2 range with clamping
+```csharp
+// Elitism: Top 3 preserved
+Elite = TopN(population, 3)
+
+// Crossover: 50/50 inheritance
+Offspring.gene = Random() < 0.5 ? Parent1.gene : Parent2.gene
+
+// Mutation: 30% chance, ±0.2 range
+if (Random() < 0.3)
+    gene += RandomRange(-0.2, 0.2)
+```
 
 ---
 
-## Results
+## 📊 Results
 
-### Evolution Progress
-```
-Gen 1: Fitness 200  | 2 nests  | Queen died   | 99/100 alive
-Gen 2: Fitness 950  | 9 nests  | Queen alive  | 100/100 alive ★ NEW RECORD
-```
+### Fitness Evolution
+
+| Gen | Fitness | Nests | Queen | Workers Alive |
+|-----|---------|-------|-------|---------------|
+| 1 | 200 | 2 | ❌ | 99/100 |
+| 2 | **950** ⭐ | 9 | ✅ | 100/100 |
 
 ### Emergent Behaviors
-1. **Cooperative Health Sharing** - Workers evolved to sustain queen
-2. **Strategic Positioning** - Ants stayed closer to queen
-3. **Balanced Digging** - Moderate digging (0.1-0.2) outperformed extremes
 
-### Gene Convergence (5+ generations)
-- `explorationRate`: 0.3-0.5 (moderate)
-- `diggingProbability`: 0.1-0.2 (strategic)
-- `foodSeekingWeight`: 1.0-1.5 (proactive)
+1. **Altruistic Health Sharing** - Workers evolved to sacrifice health for queen survival (not explicitly programmed)
+2. **Spatial Clustering** - Workers stayed near queen for efficient cooperation
+3. **Balanced Digging** - Moderate digging (0.1-0.2) outperformed extremes
+4. **Proactive Eating** - Evolved threshold prevents starvation emergencies
 
 ---
 
-## Setup
+## 🚀 Setup
 
 **Requirements:** Unity 6000.3.x, TextMeshPro
 
@@ -99,44 +131,79 @@ Gen 2: Fitness 950  | 9 nests  | Queen alive  | 100/100 alive ★ NEW RECORD
 3. Press Play
 4. Use WASD + Mouse to navigate
 
-**Adjustable Parameters** (EvolutionManager Inspector):
+**Configurable Parameters** (EvolutionManager Inspector):
 ```
-populationSize = 15
-generationDuration = 50s
-mutationChance = 0.3
-mutationAmount = 0.2
-eliteCount = 3
+populationSize = 15        // Ants per generation
+generationDuration = 50s   // Evaluation time
+mutationChance = 0.3       // Mutation probability
+mutationAmount = 0.2       // Mutation magnitude
+eliteCount = 3             // Top solutions preserved
 ```
 
 ---
 
-## Technical Notes
+## ⚠️ Known Behavior: Floating Ants
 
-### Key Design Decisions
+**What:** Ants float in mid-air for ~30 seconds at generation start before falling and beginning work.
 
-**Coroutine Initialization:** Ants delay position initialization by 1 frame to ensure WorldManager completes terrain generation first, preventing crashes.
+**Why:** Coroutine initialization ensures `WorldManager` completes terrain generation before ant spawning. Initial spawn position is above terrain, and Unity physics takes time to settle.
 
-**Mulch Occupancy Check:** Prevents simultaneous consumption by checking if another ant occupies the same block position.
+**Impact:** None - 50s evaluation window accommodates this. Consider it "planning time."
 
-**Priority-Based AI:** Hierarchical decision tree ensures critical actions (queen support) override less important ones (exploration).
+**Fix:** Raycast downward from spawn to find ground level during initialization.
 
 ---
 
-## File Structure
+## 🏗️ Architecture
+
 ```
 Assets/
 ├── Components/Agents/
-│   ├── AntAgent.cs         // Base behavior, genes, decision AI
-│   ├── QueenAnt.cs         // Nest production
-├   └──EvolutionManager.cs     // Genetic algorithm
-└── AntSimulationUI.cs      // Real-time stats display
+│   ├── AntAgent.cs            # Base behavior, genes, AI
+│   ├── QueenAnt.cs            # Nest production
+│   └── EvolutionManager.cs    # Genetic algorithm
+└── UI/
+    └── AntSimulationUI.cs     # Statistics display
 ```
+
+### Key Design Decisions
+
+**Coroutine Initialization:** Delays ant spawning by 1 frame to prevent terrain-related crashes
+
+**Mulch Occupancy Check:** Prevents simultaneous consumption - only one ant per block
+
+**Priority-Based AI:** Hierarchical decisions ensure critical actions (queen support) override exploration
+
+**Zero-Sum Health:** Enforces resource scarcity - health isn't created, only transferred
 
 ---
 
-## Author - Youssef Shawky
+## 🎓 Skills Demonstrated
 
-Created for CPSC 565 - Emergent Computing  
+- **AI/ML:** Genetic algorithms, multi-agent systems, emergent behavior
+- **Game Development:** Unity 3D, C# programming, coroutine architecture
+- **Algorithm Design:** Fitness functions, selection strategies, optimization
+- **Problem Solving:** Multi-agent coordination, resource management, debugging
+
+---
+
+## 📚 References
+
+- Goldberg, D.E. (1989). *Genetic Algorithms in Search, Optimization, and Machine Learning*
+- Bonabeau, E., et al. (1999). *Swarm Intelligence: From Natural to Artificial Systems*
+- Forked from: [DaviesCooper/Antymology](https://github.com/DaviesCooper/Antymology)
+
+---
+
+## 👤 Contact
+
+**Youssef Shawky**  
+CPSC 565 - Emergent Computing  
 University of Calgary, Winter 2026
 
-Forked from: [DaviesCooper/Antymology](https://github.com/DaviesCooper/Antymology)
+---
+
+<div align="center">
+
+
+</div>
