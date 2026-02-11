@@ -1,93 +1,142 @@
-# antymology
+# Antymology - Evolutionary Ant Colony Simulation
 
+An evolutionary algorithm that optimizes ant colony behavior for nest production in a 3D voxel environment. Worker ants and a queen evolve cooperative strategies over generations to maximize nest construction.
 
+**CPSC 565 - Emergent Computing | Winter 2026 | University of Calgary | Author: Youssef Shawky**
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Evolutionary Algorithm
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### How It Works
+1. **Spawn:** 1 Queen + 14 Workers per generation
+2. **Evaluate:** 50 seconds of autonomous behavior
+3. **Fitness:**
+   - Queen: `nests × 100 + (50 if alive)`
+   - Workers: `currentHealth + (20 if alive)`
+4. **Select:** Top 50% become breeding pool
+5. **Elite:** Top 3 preserved unchanged
+6. **Crossover:** Offspring inherit genes from 2 parents
+7. **Mutate:** 30% chance, ±0.2 variance
 
-## Add your files
+### The Three Genes
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+| Gene | Range | Purpose |
+|------|-------|---------|
+| `explorationRate` | 0.1-1.0 | Random movement frequency |
+| `diggingProbability` | 0.0-0.5 | Terrain clearing near queen |
+| `foodSeekingWeight` | 0.3-2.0 | Hunger threshold multiplier |
 
+These genes evolved to produce **emergent cooperative behavior** - workers learned to keep queens alive by sharing health, resulting in significantly more nests.
+
+---
+
+## Implementation
+
+### Ant Behavior (AntAgent.cs)
+
+Decision priority system (every 0.5s):
+1. **Queen Support** - Share health if queen is weak
+2. **Survival** - Eat mulch when health < `maxHealth × (0.6 × foodSeekingWeight)`
+3. **Digging** - Clear space near queen (probability-based)
+4. **Exploration** - Random movement (rate-based)
+
+Key mechanics:
+- Health decays 2 HP/s (4 HP/s on acidic blocks)
+- Mulch consumption refills health fully
+- Can't eat mulch if another ant occupies it
+- Movement limited to ±2 block height
+- Zero-sum health sharing between ants
+
+### Queen Behavior (QueenAnt.cs)
+
+- Produces nest blocks every 3 seconds
+- Cost: 33% max health per nest
+- Magenta color, 1.5× scale for visibility
+- Limited exploration (stays near nests)
+
+### Evolution System (EvolutionManager.cs)
+
+**Fitness Calculation:**
+```csharp
+Queen: nestsProduced × 100 + (alive ? 50 : 0)
+Worker: currentHealth + (alive ? 20 : 0)
 ```
-cd existing_repo
-git remote add origin https://csgit.ucalgary.ca/youssef.shawky/antymology.git
-git branch -M main
-git push -uf origin main
+
+**Genetic Operators:**
+- **Elitism:** Preserves top 3 solutions
+- **Crossover:** 50/50 gene inheritance from two parents
+- **Mutation:** 30% chance per gene, ±0.2 range with clamping
+
+---
+
+## Results
+
+### Evolution Progress
+```
+Gen 1: Fitness 200  | 2 nests  | Queen died   | 99/100 alive
+Gen 2: Fitness 950  | 9 nests  | Queen alive  | 100/100 alive ★ NEW RECORD
 ```
 
-## Integrate with your tools
+### Emergent Behaviors
+1. **Cooperative Health Sharing** - Workers evolved to sustain queen
+2. **Strategic Positioning** - Ants stayed closer to queen
+3. **Balanced Digging** - Moderate digging (0.1-0.2) outperformed extremes
 
-* [Set up project integrations](https://csgit.ucalgary.ca/youssef.shawky/antymology/-/settings/integrations)
+### Gene Convergence (5+ generations)
+- `explorationRate`: 0.3-0.5 (moderate)
+- `diggingProbability`: 0.1-0.2 (strategic)
+- `foodSeekingWeight`: 1.0-1.5 (proactive)
 
-## Collaborate with your team
+---
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## Setup
 
-## Test and Deploy
+**Requirements:** Unity 6000.3.x, TextMeshPro
 
-Use the built-in continuous integration in GitLab.
+1. Open project in Unity 6000.3.x
+2. Load `SampleScene`
+3. Press Play
+4. Use WASD + Mouse to navigate
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+**Adjustable Parameters** (EvolutionManager Inspector):
+```
+populationSize = 15
+generationDuration = 50s
+mutationChance = 0.3
+mutationAmount = 0.2
+eliteCount = 3
+```
 
-***
+---
 
-# Editing this README
+## Technical Notes
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Key Design Decisions
 
-## Suggestions for a good README
+**Coroutine Initialization:** Ants delay position initialization by 1 frame to ensure WorldManager completes terrain generation first, preventing crashes.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+**Mulch Occupancy Check:** Prevents simultaneous consumption by checking if another ant occupies the same block position.
 
-## Name
-Choose a self-explaining name for your project.
+**Priority-Based AI:** Hierarchical decision tree ensures critical actions (queen support) override less important ones (exploration).
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## File Structure
+```
+Assets/
+├── Components/Agents/
+│   ├── AntAgent.cs         // Base behavior, genes, decision AI
+│   ├── QueenAnt.cs         // Nest production
+├   └──EvolutionManager.cs     // Genetic algorithm
+└── AntSimulationUI.cs      // Real-time stats display
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+---
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Author - Youssef Shawky
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Created for CPSC 565 - Emergent Computing  
+University of Calgary, Winter 2026
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Forked from: [DaviesCooper/Antymology](https://github.com/DaviesCooper/Antymology)
