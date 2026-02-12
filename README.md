@@ -12,7 +12,7 @@
 
 ---
 
-## 📋 Overview
+## Overview
 
 Antymology is a Unity-based evolutionary simulation demonstrating emergent cooperative behavior in artificial life. Worker ants and a queen evolve survival strategies over generations to maximize nest construction through genetic algorithms.
 
@@ -20,7 +20,7 @@ Antymology is a Unity-based evolutionary simulation demonstrating emergent coope
 
 ---
 
-## 🎮 Evolution in Action
+## Evolution in Action
 
 <div align="center">
 
@@ -36,7 +36,7 @@ Antymology is a Unity-based evolutionary simulation demonstrating emergent coope
 
 ---
 
-## 🧬 The Evolutionary Algorithm
+## The Evolutionary Algorithm
 
 ### How It Works
 
@@ -64,7 +64,7 @@ Antymology is a Unity-based evolutionary simulation demonstrating emergent coope
 
 ---
 
-## 🔬 Technical Implementation
+## Technical Implementation
 
 ### Agent AI (`AntAgent.cs`)
 
@@ -104,7 +104,7 @@ if (Random() < 0.3)
 
 ---
 
-## 📊 Results
+## Results
 
 ### Fitness Evolution
 
@@ -122,7 +122,7 @@ if (Random() < 0.3)
 
 ---
 
-## 🚀 Setup
+## Setup
 
 **Requirements:** Unity 6000.3.x, TextMeshPro
 
@@ -142,7 +142,7 @@ eliteCount = 3             // Top solutions preserved
 
 ---
 
-## ⚠️ Known Behavior: Floating Ants
+## Known Behavior: Floating Ants
 
 **What:** Ants float in mid-air for ~30 seconds at generation start before falling and beginning work.
 
@@ -154,7 +154,7 @@ eliteCount = 3             // Top solutions preserved
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Assets/
@@ -178,7 +178,7 @@ Assets/
 
 ---
 
-## 🎓 Skills Demonstrated
+## Skills Demonstrated
 
 - **AI/ML:** Genetic algorithms, multi-agent systems, emergent behavior
 - **Game Development:** Unity 3D, C# programming, coroutine architecture
@@ -187,7 +187,7 @@ Assets/
 
 ---
 
-## 📚 References
+## References
 
 - Goldberg, D.E. (1989). *Genetic Algorithms in Search, Optimization, and Machine Learning*
 - Bonabeau, E., et al. (1999). *Swarm Intelligence: From Natural to Artificial Systems*
@@ -195,7 +195,7 @@ Assets/
 
 ---
 
-## 👤 Contact
+## Author
 
 **Youssef Shawky**  
 CPSC 565 - Emergent Computing  
